@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package com.mongodb.stitch.android.examples.todosync;
-
-import java.util.Date;
+package com.mongodb.stitch.android.tutorials.todo;
 
 import org.bson.BsonBoolean;
-import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonObjectId;
 import org.bson.BsonReader;
@@ -36,33 +33,30 @@ class TodoItem {
   public static final String TODO_DATABASE = "todo";
   public static final String TODO_ITEMS_COLLECTION = "items";
 
-  private final ObjectId id;
-  private final String ownerId;
+  private final ObjectId _id;
+  private final String owner_id;
   private final String task;
   private final boolean checked;
-  private Date doneDate;
 
   /** Constructs a todo item from a MongoDB document. */
   TodoItem(
       final ObjectId id,
-      final String ownerId,
+      final String owner_id,
       final String task,
-      final boolean checked,
-      final Date doneDate
+      final boolean checked
   ) {
-    this.id = id;
-    this.ownerId = ownerId;
+    this._id = id;
+    this.owner_id = owner_id;
     this.task = task;
     this.checked = checked;
-    this.doneDate = doneDate;
   }
 
-  public ObjectId getId() {
-    return id;
+  public ObjectId get_id() {
+    return _id;
   }
 
-  public String getOwnerId() {
-    return ownerId;
+  public String getOwner_id() {
+    return owner_id;
   }
 
   public String getTask() {
@@ -73,35 +67,21 @@ class TodoItem {
     return checked;
   }
 
-  public Date getDoneDate() {
-    return doneDate;
-  }
-
   static BsonDocument toBsonDocument(final TodoItem item) {
     final BsonDocument asDoc = new BsonDocument();
-    asDoc.put(Fields.ID, new BsonObjectId(item.getId()));
-    asDoc.put(Fields.OWNER_ID, new BsonString(item.getOwnerId()));
+    asDoc.put(Fields.ID, new BsonObjectId(item.get_id()));
+    asDoc.put(Fields.OWNER_ID, new BsonString(item.getOwner_id()));
     asDoc.put(Fields.TASK, new BsonString(item.getTask()));
     asDoc.put(Fields.CHECKED, new BsonBoolean(item.isChecked()));
-    if (item.getDoneDate() != null) {
-      asDoc.put(Fields.DONE_DATE, new BsonDateTime(item.getDoneDate().getTime()));
-    }
     return asDoc;
   }
 
   static TodoItem fromBsonDocument(final BsonDocument doc) {
-    final Date doneDate;
-    if (doc.containsKey(Fields.DONE_DATE)) {
-      doneDate = new Date(doc.getDateTime(Fields.DONE_DATE).getValue());
-    } else {
-      doneDate = null;
-    }
     return new TodoItem(
         doc.getObjectId(Fields.ID).getValue(),
         doc.getString(Fields.OWNER_ID).getValue(),
         doc.getString(Fields.TASK).getValue(),
-        doc.getBoolean(Fields.CHECKED).getValue(),
-        doneDate
+        doc.getBoolean(Fields.CHECKED).getValue()
     );
   }
 
@@ -110,7 +90,6 @@ class TodoItem {
     static final String OWNER_ID = "owner_id";
     static final String TASK = "task";
     static final String CHECKED = "checked";
-    static final String DONE_DATE = "done_date";
   }
 
   public static final Codec<TodoItem> codec = new Codec<TodoItem>() {

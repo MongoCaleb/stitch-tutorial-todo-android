@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.mongodb.stitch.android.examples.todosync">
+    package="com.mongodb.stitch.android.tutorials.todo">
 
     <application
         android:allowBackup="true"
@@ -13,7 +13,7 @@
         android:fullBackupContent="@xml/backup_descriptor"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".TodoListActivity"
+            android:name="com.mongodb.stitch.android.tutorials.todo.TodoListActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,6 +21,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.mongodb.stitch.android.tutorials.todo.LogonActivity"
+            android:launchMode="singleTop">
+        </activity>
+
     </application>
 
 </manifest>
