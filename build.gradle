@@ -15,7 +15,7 @@ buildscript {
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.ca13b.apps.songster"
+        applicationId "com.mongodb.stitch.android.tutorials.todo"
         minSdkVersion 22
         targetSdkVersion 28
         versionCode 1
