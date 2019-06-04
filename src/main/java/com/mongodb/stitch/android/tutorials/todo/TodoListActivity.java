@@ -30,6 +30,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.android.gms.tasks.Task;
 import com.mongodb.stitch.android.core.Stitch;
 import com.mongodb.stitch.android.core.StitchAppClient;
@@ -253,8 +255,9 @@ public class TodoListActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK && requestCode == 111) {
-            doLogin();
+        if (resultCode != Activity.RESULT_OK || requestCode != 111) {
+            Toast.makeText(this.getApplicationContext(), "Error logging in. Check the app logs for details.", Toast.LENGTH_LONG).show();
         }
+        doLogin();
     }
 }
