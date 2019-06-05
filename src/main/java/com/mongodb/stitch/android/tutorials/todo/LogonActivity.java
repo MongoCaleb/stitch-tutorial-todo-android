@@ -37,8 +37,12 @@ public class LogonActivity extends AppCompatActivity {
         setContentView(R.layout.logon);
         enableAnonymousAuth();
 
-        final String googleWebClientId = getString(R.string.google_web_client_id);
-        enableGoogleAuth(googleWebClientId);
+
+        // TODO:
+        // 11. Get the google client ID from strings.xml and pass it to your method for setting up
+        // Google auth
+        // final String googleWebClientId = getString(R.string.google_web_client_id);
+        // enableGoogleAuth(googleWebClientId);
     }
 
     private void enableAnonymousAuth() {
@@ -63,27 +67,37 @@ public class LogonActivity extends AppCompatActivity {
 
     private void enableGoogleAuth(String googleWebClientId) {
 
+        // TODO:
+        // 1. Instantiate a GoogleSignInOptions.Builder object with the default sign-in option
         final GoogleSignInOptions.Builder gsoBuilder = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestServerAuthCode(googleWebClientId, true);
 
+        // 2. Build it and pass the result to a new GoogleSignInOptions object
         final GoogleSignInOptions gso = gsoBuilder.build();
 
+        // 3. Instantiate the _googleApiClient
         _googleApiClient = new GoogleApiClient.Builder(LogonActivity.this)
                 .enableAutoManage(LogonActivity.this, connectionResult ->
                         Log.e("Stitch Auth", "Error connecting to google: " + connectionResult.getErrorMessage()))
                 .addApi(GOOGLE_SIGN_IN_API, gso)
                 .build();
 
+        // 4. Create an onclick listener for the google_login_button
         findViewById(R.id.google_login_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View ignored) {
 
+                // 4a.
+                // if we already have a google client, clear it and require the user to log back in.
+                // Otherwise, call connect()
                 if (_googleApiClient.isConnected()) {
                     _googleApiClient.clearDefaultAccountAndReconnect();
                 } else {
                     _googleApiClient.connect();
                 }
 
+                // 5. Set sign-in options, create a sign-in client with those options, and initiate
+                // the intent
                 GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestServerAuthCode(googleWebClientId)
                         .build();
@@ -96,12 +110,20 @@ public class LogonActivity extends AppCompatActivity {
     }
 
     private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        //TODO
+        // 6. Create a GoogleSignInAccount from the task result. Put it in a try-catch
+        // and catch any ApiException
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
 
+            // 7. Create a GoogleCredential from the account.
             final GoogleCredential googleCredential =
                     new GoogleCredential(account.getServerAuthCode());
 
+            // 8. Call getAuth().loginWithCredential on the static TodoListActivity.client object,
+            // passing in the googleCredential.
+            // If the task is succesful,set the result to Activity.RESULT_OK and end this activity,
+            // returning control to the TodoListActivity
             TodoListActivity.client.getAuth().loginWithCredential(googleCredential).addOnCompleteListener(
                     task -> {
                         if (task.isSuccessful()) {
@@ -119,10 +141,13 @@ public class LogonActivity extends AppCompatActivity {
         }
     }
 
+    // TODO
+    // 9. Handle the result that Google sends back to us
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        // 10. If this is from the Google request, call the handler method you created above
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleGoogleSignInResult(task);
