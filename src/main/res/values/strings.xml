@@ -5,6 +5,8 @@
     <string name="clear_checked_action_label">Clear Checked</string>
     <string name="clear_all_action_label">Clear All</string>
     <string name="edit_item_hint">Edit Item</string>
-    <string name="stitch_client_app_id">APP_ID</string>
+    <string name="stitch_client_app_id">docs-todo-amtni</string>
     <string name="google_web_client_id">GOOGLE_ID</string>
+    <string name="facebook_app_id">399458727131956</string>
+    <string name="fb_login_protocol_scheme">fb399458727131956</string>
 </resources>

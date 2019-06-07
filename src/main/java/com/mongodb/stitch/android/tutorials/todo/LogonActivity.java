@@ -3,19 +3,33 @@ package com.mongodb.stitch.android.tutorials.todo;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.mongodb.stitch.android.core.auth.StitchUser;
 import com.mongodb.stitch.core.auth.providers.anonymous.AnonymousCredential;
+import com.mongodb.stitch.core.auth.providers.facebook.FacebookCredential;
 import com.mongodb.stitch.core.auth.providers.google.GoogleCredential;
+
+import java.util.Arrays;
 
 import static com.google.android.gms.auth.api.Auth.GOOGLE_SIGN_IN_API;
 
@@ -24,10 +38,12 @@ public class LogonActivity extends AppCompatActivity {
     private GoogleApiClient _googleApiClient;
     private static final int GOOGLE_SIGN_IN = 421;
 
+    private CallbackManager _callbackManager;
+    private Boolean _fbInitOnce = false;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.logon);
         setupLogin();
     }
@@ -38,6 +54,8 @@ public class LogonActivity extends AppCompatActivity {
 
         final String googleWebClientId = getString(R.string.google_web_client_id);
         enableGoogleAuth(googleWebClientId);
+
+        enableFacebookAuth();
     }
 
     private void enableAnonymousAuth() {
@@ -61,21 +79,16 @@ public class LogonActivity extends AppCompatActivity {
 
 
     private void enableGoogleAuth(String googleWebClientId) {
-        // 1. Create a new GoogleSignInOptions object by calling build() on a
-        //    new GoogleSignInOptions.Builder object.
         final GoogleSignInOptions gso =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestServerAuthCode(googleWebClientId, true).build();
 
-
-        // 2. Initialize the _googleApiClient
         _googleApiClient = new GoogleApiClient.Builder(LogonActivity.this)
                 .enableAutoManage(LogonActivity.this, connectionResult ->
                         Log.e("Stitch Auth", "Error connecting to google: " + connectionResult.getErrorMessage()))
                 .addApi(GOOGLE_SIGN_IN_API, gso)
                 .build();
 
-        // 3. Create an onclick listener for the google_login_button
         findViewById(R.id.google_login_button).setOnClickListener(v -> {
             if (!_googleApiClient.isConnected()) {
                 _googleApiClient.connect();
@@ -90,15 +103,11 @@ public class LogonActivity extends AppCompatActivity {
 
     private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
-            // 5. Create a GoogleSignInAccount from the task result.
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
 
-            // 5a. Create a GoogleCredential from the account.
             final GoogleCredential googleCredential =
                     new GoogleCredential(account.getServerAuthCode());
 
-            // 5b. Authenticate against Stitch. If the task is successful, set the result to
-            //      Activity.RESULT_OK and end this activity, returning control to the TodoListActivity
             TodoListActivity.client.getAuth().loginWithCredential(googleCredential).addOnCompleteListener(
                     task -> {
                         if (task.isSuccessful()) {
@@ -121,11 +130,79 @@ public class LogonActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // 4. Handle the result that Google sends back to us
         if (requestCode == GOOGLE_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleGoogleSignInResult(task);
+        }
+
+        if (_callbackManager != null) {
+            _callbackManager.onActivityResult(requestCode, resultCode, data);
             return;
         }
+
+    }
+
+    private void enableFacebookAuth() {
+
+        findViewById(R.id.fb_login_button).setOnClickListener(v -> {
+
+            // Check if the user is already logged in
+            if (AccessToken.getCurrentAccessToken() == null) {
+                _callbackManager = CallbackManager.Factory.create();
+                LoginManager.getInstance().registerCallback(_callbackManager,
+                        new FacebookCallback<LoginResult>() {
+                            @Override
+                            public void onSuccess(LoginResult loginResult) {
+                                final FacebookCredential fbCredential = new FacebookCredential(AccessToken.getCurrentAccessToken().getToken());
+
+                                TodoListActivity.client.getAuth().loginWithCredential(fbCredential).addOnCompleteListener(new OnCompleteListener<StitchUser>() {
+                                    @Override
+                                    public void onComplete(@NonNull final Task<StitchUser> task) {
+                                        if (task.isSuccessful()) {
+                                            _fbInitOnce = true;
+                                            setResult(Activity.RESULT_OK);
+                                            finish();
+                                        } else {
+                                            Log.e("Stitch Auth", "Error logging in with Facebook",
+                                                    task.getException());
+                                        }
+                                    }
+                                });
+
+
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                Toast.makeText(LogonActivity.this, "Facebook logon was " +
+                                        "cancelled.", Toast.LENGTH_LONG).show();
+                            }
+
+                            @Override
+                            public void onError(final FacebookException exception) {
+                                Toast.makeText(LogonActivity.this, "Failed to logon with " +
+                                        "Facebook. Result: " + exception.toString(), Toast.LENGTH_LONG).show();
+
+                            }
+                        });
+                LoginManager.getInstance().logInWithReadPermissions(
+                        LogonActivity.this,
+                        Arrays.asList("public_profile"));
+            } else {
+                if (!_fbInitOnce) {
+                    final FacebookCredential fbCredential = new FacebookCredential(AccessToken.getCurrentAccessToken().getToken());
+
+                    TodoListActivity.client.getAuth().loginWithCredential(fbCredential).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            _fbInitOnce = true;
+                            setResult(Activity.RESULT_OK);
+                            finish();
+                        } else {
+                            Log.e("Stitch Auth", "Error logging in with Facebook", task.getException());
+                        }
+                    });
+                }
+            }
+        });
     }
 }
