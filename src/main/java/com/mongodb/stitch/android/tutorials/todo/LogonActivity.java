@@ -45,6 +45,13 @@ public class LogonActivity extends AppCompatActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.logon);
+
+        // log out any linger accounts
+        if (_googleApiClient != null && _googleApiClient.isConnected()){
+            _googleApiClient.disconnect();
+        }
+        LoginManager.getInstance().logOut();
+
         setupLogin();
     }
 
@@ -143,9 +150,7 @@ public class LogonActivity extends AppCompatActivity {
     }
 
     private void enableFacebookAuth() {
-
         findViewById(R.id.fb_login_button).setOnClickListener(v -> {
-
             // Check if the user is already logged in
             if (AccessToken.getCurrentAccessToken() == null) {
                 _callbackManager = CallbackManager.Factory.create();
@@ -168,8 +173,6 @@ public class LogonActivity extends AppCompatActivity {
                                         }
                                     }
                                 });
-
-
                             }
 
                             @Override
