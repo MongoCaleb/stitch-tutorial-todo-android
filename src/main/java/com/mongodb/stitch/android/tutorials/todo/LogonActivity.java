@@ -46,7 +46,7 @@ public class LogonActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.logon);
 
-        // log out any linger accounts
+        // log out any lingering accounts
         if (_googleApiClient != null && _googleApiClient.isConnected()){
             _googleApiClient.disconnect();
         }
