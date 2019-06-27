@@ -26,14 +26,10 @@
             android:launchMode="singleTop">
         </activity>
 
-        <activity android:name="com.facebook.FacebookActivity"
-            tools:replace="android:theme"
-            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:label="@string/app_name" />
-
+        <!--TODO: add Facebook metadata-->
         <meta-data android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id"/>
+        <!-- end TODO -->
 
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>

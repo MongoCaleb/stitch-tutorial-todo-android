@@ -38,6 +38,8 @@ public class LogonActivity extends AppCompatActivity {
         setContentView(R.layout.logon);
         enableAnonymousAuth();
 
+        // 6. Make sure that the current user is logged off whenever
+        // the login activity is shown.
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
         if (isLoggedIn){
@@ -67,23 +69,27 @@ public class LogonActivity extends AppCompatActivity {
     }
 
     private void enableFacebookAuth() {
+
+        // 1. Initialize the CallbackManager
         _callbackManager = CallbackManager.Factory.create();
 
+        // 2. Register the CallbackManager with the LoginManager instance
         LoginManager.getInstance().registerCallback(_callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                final FacebookCredential fbCredential = new FacebookCredential(AccessToken.getCurrentAccessToken().getToken());
 
-                TodoListActivity.client.getAuth().loginWithCredential(fbCredential).addOnCompleteListener(new OnCompleteListener<StitchUser>() {
-                    @Override
-                    public void onComplete(@NonNull final Task<StitchUser> task) {
-                        if (task.isSuccessful()) {
-                            setResult(Activity.RESULT_OK);
-                            finish();
-                        } else {
-                            Log.e("Stitch Auth", "Error logging in with Facebook",
-                                    task.getException());
-                        }
+                // 3. On successful login, obtain the Facebook credential and pass it to Stitch
+                // via the loginWithCredential() method.
+                final FacebookCredential fbCredential = new FacebookCredential(AccessToken.getCurrentAccessToken().getToken());
+                TodoListActivity.client.getAuth().loginWithCredential(fbCredential).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // 4. We have successfully logged on with Stitch, so set the activity's
+                        // result and call finish();
+                        setResult(Activity.RESULT_OK);
+                        finish();
+                    } else {
+                        Log.e("Stitch Auth", "Error logging in with Facebook",
+                                task.getException());
                     }
                 });
             }
@@ -106,6 +112,8 @@ public class LogonActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        // 5. Handle the result that Facebook returns to us
         _callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }
