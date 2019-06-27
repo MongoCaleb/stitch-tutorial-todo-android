@@ -145,6 +145,7 @@ public class TodoListActivity extends AppCompatActivity {
     }
 
     private void doLogin() {
+
         if (client.getAuth().getUser() != null && client.getAuth().getUser().isLoggedIn()) {
             userId = client.getAuth().getUser().getId();
             TextView tvId = findViewById(R.id.txt_user_id);
