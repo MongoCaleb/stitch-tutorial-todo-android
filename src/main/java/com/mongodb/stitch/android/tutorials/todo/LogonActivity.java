@@ -38,11 +38,11 @@ public class LogonActivity extends AppCompatActivity {
         setContentView(R.layout.logon);
         enableAnonymousAuth();
 
-        // 6. Make sure that the current user is logged off whenever
+        // 5. Make sure that the current user is logged off whenever
         // the login activity is shown.
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-        if (isLoggedIn){
+        if (isLoggedIn) {
             LoginManager.getInstance().logOut();
         }
 
@@ -78,13 +78,13 @@ public class LogonActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
 
-                // 3. On successful login, obtain the Facebook credential and pass it to Stitch
-                // via the loginWithCredential() method.
-                final FacebookCredential fbCredential = new FacebookCredential(AccessToken.getCurrentAccessToken().getToken());
-                TodoListActivity.client.getAuth().loginWithCredential(fbCredential).addOnCompleteListener(task -> {
+                // 3. On successful login, obtain the Facebook credential and
+                // pass it to Stitch via the loginWithCredential() method.
+                final FacebookCredential fbCredential =
+                        new FacebookCredential(AccessToken.getCurrentAccessToken().getToken());
+                TodoListActivity.client.getAuth()
+                        .loginWithCredential(fbCredential).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // 4. We have successfully logged on with Stitch, so set the activity's
-                        // result and call finish();
                         setResult(Activity.RESULT_OK);
                         finish();
                     } else {
@@ -113,7 +113,7 @@ public class LogonActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // 5. Handle the result that Facebook returns to us
+        // 4. Handle the result that Facebook returns to us
         _callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }
